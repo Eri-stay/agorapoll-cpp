@@ -3,6 +3,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../polls/screens/my_polls_screen.dart';
 import '../../search/screens/search_screen.dart';
 import '../widgets/side_menu_column.dart';
+import '../../create_poll/screens/create_poll_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -21,9 +22,16 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    if (index == 1 ){
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context)=>CreatePollScreen())
+      );
+    }else {
+      setState(() {
+        _selectedIndex = index;
+      });
+    }
   }
 
   @override
@@ -37,9 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
             // Шар 1: Основний контент (AppBar + Body + BottomNav)
             Column(
               children: [
-                // Наш кастомний AppBar
                 _buildAppBar(),
-                // Розширюємо Body, щоб він займав увесь доступний простір
                 Expanded(
                   child: _widgetOptions.elementAt(_selectedIndex),
                 ),
@@ -48,7 +54,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
 
-            // Шар 2: Колона поверх усього
+            // Column
             if (_selectedIndex == 0 || _selectedIndex == 2)
               const SideMenuColumn(),
           ],
@@ -59,30 +65,34 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Виносимо AppBar в окремий метод для чистоти коду
   Widget _buildAppBar() {
-    return Container(
-      padding: const EdgeInsets.only(left: 20),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        border: Border(bottom: BorderSide(color: Colors.grey[300]!, width: 1.0)),
-      ),
-      child: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent, // Робимо фон прозорим
-        elevation: 0,
-        centerTitle: true,
-        title: Text(
-          _getAppBarTitle(_selectedIndex),
-          style: const TextStyle(
-            fontFamily: 'Cinzel',
-            color: AppColors.textPrimary,
-            fontSize: 36,
+    if ([0, 1].contains(_selectedIndex)){
+      return Container(
+        padding: const EdgeInsets.only(left: 20),
+        decoration: BoxDecoration(
+          color: AppColors.background,
+          border: Border(
+              bottom: BorderSide(color: Colors.grey[300]!, width: 1.0)),
+        ),
+        child: AppBar(
+          automaticallyImplyLeading: false,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          centerTitle: true,
+          title: Text(
+            _getAppBarTitle(_selectedIndex),
+            style: const TextStyle(
+              fontFamily: 'Cinzel',
+              color: AppColors.textPrimary,
+              fontSize: 36,
+            ),
           ),
         ),
-      ),
-    );
+      );
+    }
+    return Container();
   }
 
-  // Виносимо BottomNav в окремий метод
+
   Widget _buildBottomNavBar() {
     return Container(
       padding: const EdgeInsets.only(left: 30),
@@ -99,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
         currentIndex: _selectedIndex,
         selectedItemColor: AppColors.accentGold,
         unselectedItemColor: AppColors.textSecondary,
-        backgroundColor: Colors.transparent, // Робимо фон прозорим
+        backgroundColor: Colors.transparent,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
         onTap: _onItemTapped,

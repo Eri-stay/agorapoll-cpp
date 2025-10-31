@@ -7,7 +7,7 @@ class SideMenuColumn extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      left: 0,
+      left: -40,
       top: 0,
       bottom: 0,
       child: GestureDetector(
@@ -16,13 +16,13 @@ class SideMenuColumn extends StatelessWidget {
           print("Side Menu Tapped");
         },
         child: Container(
-          width: 85, // Ширина колони, можна налаштувати
+          width: 100, // Ширина колони, можна налаштувати
           color: Colors.transparent,
           child: Stack(
             children: [
               // Column
               Positioned.fill(
-                left: -70,
+                left: 0,
                 child: Image.asset(
                   'assets/images/roman-pillar-normal.png',
                   fit: BoxFit.fitHeight,
@@ -31,9 +31,9 @@ class SideMenuColumn extends StatelessWidget {
               // Tab with arrow
               Positioned(
                 top: 60,
-                right: 26,
+                right: 0,
                 child: Container(
-                  width: 24,
+                  width: 17,
                   height: 30,
                   decoration: const BoxDecoration(
                     color: AppColors.mutedGold,
@@ -42,6 +42,7 @@ class SideMenuColumn extends StatelessWidget {
                       bottomRight: Radius.circular(4),
                     ),
                   ),
+                  alignment: Alignment.center,
                   child: const Icon(
                     Icons.chevron_right,
                     color: AppColors.background,
