@@ -6,47 +6,48 @@ class SideMenuColumn extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+
+    final double columnTotalWidth = screenHeight * 0.132;
+    final double hiddenWidth = columnTotalWidth * 0.4;
+
     return Positioned(
-      left: -40,
+      left: -hiddenWidth,
       top: 0,
       bottom: 0,
       child: GestureDetector(
         onTap: () {
-          // Тут буде логіка відкриття меню
           print("Side Menu Tapped");
         },
-        child: Container(
-          width: 100, // Ширина колони, можна налаштувати
-          color: Colors.transparent,
+        child: SizedBox(
+          width: columnTotalWidth,
           child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              // Column
               Positioned.fill(
-                left: 0,
                 child: Image.asset(
                   'assets/images/roman-pillar-normal.png',
                   fit: BoxFit.fitHeight,
                 ),
               ),
-              // Tab with arrow
               Positioned(
-                top: 60,
+                top: columnTotalWidth*0.6,
                 right: 0,
                 child: Container(
-                  width: 17,
-                  height: 30,
+                  width: columnTotalWidth * 0.25,
+                  height: columnTotalWidth * 0.3,
                   decoration: const BoxDecoration(
-                    color: AppColors.mutedGold,
+                    color: AppColors.accentGold,
                     borderRadius: BorderRadius.only(
                       topRight: Radius.circular(4),
                       bottomRight: Radius.circular(4),
                     ),
                   ),
                   alignment: Alignment.center,
-                  child: const Icon(
+                  child: Icon(
                     Icons.chevron_right,
                     color: AppColors.background,
-                    size: 20,
+                    size: columnTotalWidth * 0.18,
                   ),
                 ),
               ),

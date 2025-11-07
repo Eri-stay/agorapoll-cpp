@@ -15,9 +15,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void initState() {
     super.initState();
     Timer(const Duration(seconds: 3), () {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const LoginScreen()),
-      );
+      Navigator.of(
+        context,
+      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
     });
   }
 
@@ -29,11 +29,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Opacity(
-              opacity: 0.8,
-              child: Image.asset(
-                'assets/images/parthenon_sketch.png',
-                width: MediaQuery.of(context).size.width * 0.85,
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: Opacity(
+                opacity: 0.8,
+                child: Image.asset(
+                  'assets/images/parthenon_sketch.png',
+                  width: MediaQuery.of(context).size.width * 0.85,
+                ),
               ),
             ),
             const SizedBox(height: 32),

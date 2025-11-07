@@ -46,6 +46,7 @@ class _SearchScreenState extends State<SearchScreen> {
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
+        
       ),
       decoration: BoxDecoration(
         border: Border(
@@ -65,9 +66,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 'ENTER CODE',
                 style: TextStyle(
                   fontFamily: 'Cinzel',
-                  fontSize: 40,
+                  fontSize: 36,
                   letterSpacing: 1.2,
                   color: AppColors.textPrimary,
+                  
                 ),
               ),
               const SizedBox(height: 8),

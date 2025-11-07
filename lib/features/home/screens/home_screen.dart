@@ -17,17 +17,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
   static const List<Widget> _widgetOptions = <Widget>[
     MyPollsScreen(),
-    Text('Create Screen'), // Заглушка
+    Text('Create Screen'), // Заглушка not p;aceholder
     SearchScreen(),
   ];
 
   void _onItemTapped(int index) {
-    if (index == 1 ){
+    if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context)=>CreatePollScreen())
+        MaterialPageRoute(builder: (context) => CreatePollScreen()),
       );
-    }else {
+    } else {
       setState(() {
         _selectedIndex = index;
       });
@@ -38,7 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor: AppColors.background, // Встановлюємо фон для всього екрана
+      backgroundColor:
+          AppColors.background, // Встановлюємо фон для всього екрана
       body: SafeArea(
         child: Stack(
           children: [
@@ -46,9 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
             Column(
               children: [
                 _buildAppBar(),
-                Expanded(
-                  child: _widgetOptions.elementAt(_selectedIndex),
-                ),
+                Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
                 // Наш кастомний BottomNavigationBar
                 _buildBottomNavBar(),
               ],
@@ -65,13 +64,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   // Виносимо AppBar в окремий метод для чистоти коду
   Widget _buildAppBar() {
-    if ([0, 1].contains(_selectedIndex)){
+    if ([0, 1].contains(_selectedIndex)) {
       return Container(
         padding: const EdgeInsets.only(left: 20),
         decoration: BoxDecoration(
           color: AppColors.background,
           border: Border(
-              bottom: BorderSide(color: Colors.grey[300]!, width: 1.0)),
+            bottom: BorderSide(color: Colors.grey[300]!, width: 1.0),
+          ),
         ),
         child: AppBar(
           automaticallyImplyLeading: false,
@@ -92,7 +92,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Container();
   }
 
-
   Widget _buildBottomNavBar() {
     return Container(
       padding: const EdgeInsets.only(left: 30),
@@ -102,8 +101,14 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: 'My Polls'),
-          BottomNavigationBarItem(icon: Icon(Icons.add_circle_outline), label: 'Create'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.list_alt_outlined),
+            label: 'My Polls',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.add_circle_outline),
+            label: 'Create',
+          ),
           BottomNavigationBarItem(icon: Icon(Icons.search), label: 'Search'),
         ],
         currentIndex: _selectedIndex,
@@ -119,10 +124,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
   String _getAppBarTitle(int index) {
     switch (index) {
-      case 0: return 'MY POLLS';
-      case 1: return 'CREATE A POLL';
-      case 2: return '';
-      default: return 'AGORAPOLL';
+      case 0:
+        return 'MY POLLS';
+      case 1:
+        return 'CREATE A POLL';
+      case 2:
+        return '';
+      default:
+        return 'AGORAPOLL';
     }
   }
 }
