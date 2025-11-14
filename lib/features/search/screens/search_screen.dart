@@ -4,6 +4,7 @@ import 'package:pinput/pinput.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../../core/formatters/uppercase_text_formatter.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class SearchScreen extends StatefulWidget {
   const SearchScreen({Key? key}) : super(key: key);
@@ -46,7 +47,6 @@ class _SearchScreenState extends State<SearchScreen> {
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
-        
       ),
       decoration: BoxDecoration(
         border: Border(
@@ -69,7 +69,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   fontSize: 36,
                   letterSpacing: 1.2,
                   color: AppColors.textPrimary,
-                  
                 ),
               ),
               const SizedBox(height: 8),
@@ -99,7 +98,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 focusedPinTheme: defaultPinTheme.copyWith(
                   decoration: defaultPinTheme.decoration!.copyWith(
                     border: const Border(
-                      bottom: BorderSide(width: 2.0, color: AppColors.accentGold),
+                      bottom: BorderSide(
+                        width: 2.0,
+                        color: AppColors.accentGold,
+                      ),
                     ),
                   ),
                 ),
@@ -115,11 +117,15 @@ class _SearchScreenState extends State<SearchScreen> {
               PrimaryButton(
                 text: 'ENTER',
                 onPressed: _isButtonEnabled
-                    ? () {
-                  print('Entered code: ${_pinController.text}');
-                  // Тут буде логіка перевірки коду
-                }
-                    : (){}, // Передаємо пусту функцію, щоб ElevatedButton сам змінив вигляд
+                    ? () async {
+                        await FirebaseAnalytics.instance.logEvent(
+                          name: 'join_poll_with_code',
+                          parameters: {'poll_code': _pinController.text},
+                        );
+                        print('Entered code: ${_pinController.text}');
+                        // Тут буде логіка перевірки коду
+                      }
+                    : () {},
               ),
 
               const SizedBox(height: 16),

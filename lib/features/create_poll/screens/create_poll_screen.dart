@@ -2,6 +2,8 @@ import 'package:agora_poll/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/primary_button.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class CreatePollScreen extends StatelessWidget {
   const CreatePollScreen({super.key});
@@ -35,10 +37,23 @@ class CreatePollScreen extends StatelessWidget {
               children: [
                 PrimaryButton(
                   text: 'LOG OUT???',
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  onPressed: () async {
+                    await FirebaseAnalytics.instance.logEvent(
+                      name: 'manual_logout',
                     );
+
+                    if (context.mounted) {
+                      Navigator.of(context).pushReplacement(
+                        MaterialPageRoute(builder: (_) => const LoginScreen()),
+                      );
+                    }
+                  },
+                ),
+                PrimaryButton(
+                  text: 'Test Crash!!!',
+                  color: const Color(0xFFB75D69),
+                  onPressed: () {
+                    FirebaseCrashlytics.instance.crash();
                   },
                 ),
               ],

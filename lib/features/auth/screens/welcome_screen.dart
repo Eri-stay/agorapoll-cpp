@@ -14,7 +14,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 3), () {
+    Timer(const Duration(seconds: 2), () {
       Navigator.of(
         context,
       ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
