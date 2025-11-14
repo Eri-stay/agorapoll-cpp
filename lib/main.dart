@@ -2,8 +2,11 @@ import 'package:flutter/material.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'core/theme/app_theme.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
-void main() {
+void main() async {
+  //FirebaseAnalytics analytics = FirebaseAnalytics.instance;
+  await FirebaseAnalytics.instance.logBeginCheckout();
   runApp(const MyApp());
 }
 
