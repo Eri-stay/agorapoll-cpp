@@ -38,17 +38,15 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
-      backgroundColor:
-          AppColors.background, // Встановлюємо фон для всього екрана
+      backgroundColor: AppColors.background,
       body: SafeArea(
         child: Stack(
           children: [
-            // Шар 1: Основний контент (AppBar + Body + BottomNav)
             Column(
               children: [
                 _buildAppBar(),
                 Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
-                // Наш кастомний BottomNavigationBar
+                // кастомний BottomNavigationBar
                 _buildBottomNavBar(),
               ],
             ),
@@ -62,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  // Виносимо AppBar в окремий метод для чистоти коду
   Widget _buildAppBar() {
     if ([0, 1].contains(_selectedIndex)) {
       return Container(

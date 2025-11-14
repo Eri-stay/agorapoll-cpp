@@ -2,8 +2,17 @@ import 'package:flutter/material.dart';
 import 'features/auth/screens/welcome_screen.dart';
 import 'core/theme/app_theme.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+//import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
+
+  FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
   runApp(const MyApp());
 }
 

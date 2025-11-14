@@ -3,7 +3,8 @@ import 'signup_screen.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/auth_text_field.dart';
 import '../../../core/widgets/primary_button.dart';
-import '../../home/screens/home_screen.dart'; // A placeholder screen
+import '../../home/screens/home_screen.dart';
+import 'package:firebase_analytics/firebase_analytics.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({Key? key}) : super(key: key);
@@ -43,10 +44,18 @@ class LoginScreen extends StatelessWidget {
                   const SizedBox(height: 32),
                   PrimaryButton(
                     text: 'LOG IN',
-                    onPressed: () {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    onPressed: () async {
+                      await FirebaseAnalytics.instance.logLogin(
+                        loginMethod: 'email',
                       );
+
+                      print('Firebase event "logLogin"');
+
+                      if (context.mounted) {
+                        Navigator.of(context).pushReplacement(
+                          MaterialPageRoute(builder: (_) => const HomeScreen()),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 24),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "782367762659",
+    "project_id": "agorapoll-cpp",
+    "storage_bucket": "agorapoll-cpp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:782367762659:android:4fc13c76e992d1d5353dd6",
+        "android_client_info": {
+          "package_name": "com.example.agora_poll"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBSp3JueNVGUUKQcuiF4z9zs9Y98BlMzcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

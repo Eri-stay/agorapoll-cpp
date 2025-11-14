@@ -2,6 +2,7 @@ import 'package:agora_poll/features/auth/screens/login_screen.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/primary_button.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 class CreatePollScreen extends StatelessWidget {
   const CreatePollScreen({super.key});
@@ -39,6 +40,18 @@ class CreatePollScreen extends StatelessWidget {
                     Navigator.of(context).pushReplacement(
                       MaterialPageRoute(builder: (_) => const LoginScreen()),
                     );
+                  },
+                ),
+                PrimaryButton(
+                  text: 'TEST CRASH',
+                  onPressed: () {
+                    throw StateError('This is a test crash');
+                  },
+                ),
+                PrimaryButton(
+                  text: 'TEST FIREBASE CRASH',
+                  onPressed: () {
+                    FirebaseCrashlytics.instance.crash();
                   },
                 ),
               ],

@@ -3,6 +3,7 @@ import 'app_colors.dart';
 
 class AppTheme {
   static final ThemeData lightTheme = ThemeData(
+    colorScheme: ColorScheme.fromSeed(seedColor: AppColors.mutedGold),
     scaffoldBackgroundColor: AppColors.background,
     fontFamily: 'Inter',
     textTheme: const TextTheme(

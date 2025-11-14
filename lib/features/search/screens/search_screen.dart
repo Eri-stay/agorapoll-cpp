@@ -46,7 +46,6 @@ class _SearchScreenState extends State<SearchScreen> {
         fontSize: 32,
         fontWeight: FontWeight.bold,
         color: AppColors.textPrimary,
-        
       ),
       decoration: BoxDecoration(
         border: Border(
@@ -69,7 +68,6 @@ class _SearchScreenState extends State<SearchScreen> {
                   fontSize: 36,
                   letterSpacing: 1.2,
                   color: AppColors.textPrimary,
-                  
                 ),
               ),
               const SizedBox(height: 8),
@@ -99,7 +97,10 @@ class _SearchScreenState extends State<SearchScreen> {
                 focusedPinTheme: defaultPinTheme.copyWith(
                   decoration: defaultPinTheme.decoration!.copyWith(
                     border: const Border(
-                      bottom: BorderSide(width: 2.0, color: AppColors.accentGold),
+                      bottom: BorderSide(
+                        width: 2.0,
+                        color: AppColors.accentGold,
+                      ),
                     ),
                   ),
                 ),
@@ -111,15 +112,14 @@ class _SearchScreenState extends State<SearchScreen> {
 
               const SizedBox(height: 48),
 
-              // Кнопка, стан якої залежить від _isButtonEnabled
               PrimaryButton(
                 text: 'ENTER',
                 onPressed: _isButtonEnabled
                     ? () {
-                  print('Entered code: ${_pinController.text}');
-                  // Тут буде логіка перевірки коду
-                }
-                    : (){}, // Передаємо пусту функцію, щоб ElevatedButton сам змінив вигляд
+                        print('Entered code: ${_pinController.text}');
+                        // буде логіка перевірки коду
+                      }
+                    : () {}, // пуста функція, щоб ElevatedButton сам змінив вигляд
               ),
 
               const SizedBox(height: 16),
