@@ -6,6 +6,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../bloc/my_polls_bloc.dart';
 import '../bloc/my_polls_event.dart';
 import '../bloc/my_polls_state.dart';
+import '../../auth/repository/auth_repository.dart';
+import '../../shared/repositories/polls_repository.dart';
+import '../../create_poll/screens/create_poll_screen.dart';
 
 class MyPollsScreen extends StatelessWidget {
   const MyPollsScreen({Key? key}) : super(key: key);
@@ -13,7 +16,10 @@ class MyPollsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => MyPollsBloc()..add(LoadMyPolls()),
+      create: (context) => MyPollsBloc(
+        pollsRepository: PollsRepository(),
+        authRepository: AuthRepository(),
+      )..add(LoadMyPolls()),
       child: BlocBuilder<MyPollsBloc, MyPollsState>(
         builder: (context, state) {
           // --- State 1: LOADING ---
@@ -71,8 +77,12 @@ class MyPollsScreen extends StatelessWidget {
             if (state.polls.isEmpty) {
               return EmptyPollsWidget(
                 onCreatePollTapped: () {
-                  // to do: Navigate to Create Poll Screen
-                  print("Navigate to Create Poll");
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CreatePollScreen(),
+                    ),
+                  );
                 },
               );
             }

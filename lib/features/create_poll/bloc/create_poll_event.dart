@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import '../../../data/models/poll_model.dart';
 
 abstract class CreatePollEvent extends Equatable {
   const CreatePollEvent();

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/primary_button.dart';
 import 'create_poll_screen.dart';
+import '../../poll_details/screens/poll_details_screen.dart';
 
 // --- LOGIC WIDGET ---
 class PollCreatedScreen extends StatelessWidget {
@@ -30,9 +31,8 @@ class PollCreatedScreen extends StatelessWidget {
   }
 
   void _navigateToPoll(BuildContext context) {
-    // to do: Navigate to Poll Details Screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Navigate to Poll Details (Placeholder)")),
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => PollDetailsScreen(pollId: pollId)),
     );
   }
 

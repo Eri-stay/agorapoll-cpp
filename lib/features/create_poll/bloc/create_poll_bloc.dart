@@ -1,23 +1,28 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:uuid/uuid.dart';
 import 'create_poll_event.dart';
 import 'create_poll_state.dart';
 import '../../../data/models/poll_model.dart';
 import 'dart:math';
 import '../../auth/repository/auth_repository.dart';
+import '../../shared/repositories/polls_repository.dart';
 
 class CreatePollBloc extends Bloc<CreatePollEvent, CreatePollState> {
   final AuthRepository _authRepository;
+  final PollsRepository _pollsRepository;
 
-  CreatePollBloc({required AuthRepository authRepository})
-    : _authRepository = authRepository,
-      super(CreatePollInitial()) {
+  CreatePollBloc({
+    required AuthRepository authRepository,
+    required PollsRepository pollsRepository,
+  }) : _authRepository = authRepository,
+       _pollsRepository = pollsRepository,
+       super(CreatePollInitial()) {
     on<CreatePollSubmitted>(_onSubmit);
   }
 
   // Poll code generator
   String _generatePollCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
     final rnd = Random();
     return String.fromCharCodes(
       Iterable.generate(6, (_) => chars.codeUnitAt(rnd.nextInt(chars.length))),
@@ -40,9 +45,11 @@ class CreatePollBloc extends Bloc<CreatePollEvent, CreatePollState> {
         return;
       }
 
+      final String pollId = const Uuid().v4();
+
       // Create new Poll object
       final newPoll = Poll(
-        id: UniqueKey().toString(),
+        id: pollId,
         creatorId: userId, // Used current user ID
         code: _generatePollCode(), // Generate poll code
         question: event.question,
@@ -54,11 +61,10 @@ class CreatePollBloc extends Bloc<CreatePollEvent, CreatePollState> {
         createdAt: DateTime.now(),
       );
 
-      // to do: save newPoll to database
-      print("Saving poll to DB: ${newPoll.question} with code ${newPoll.code}");
-
       // for ERROR testing (uncomment)
       // throw Exception("Failed to create poll. Try again.");
+
+      await _pollsRepository.createPoll(newPoll);
 
       // if ok
 

@@ -4,12 +4,11 @@ import '../bloc/create_poll_bloc.dart';
 import '../bloc/create_poll_event.dart';
 import '../bloc/create_poll_state.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'dart:math';
-import '../../../data/models/poll_model.dart';
 import '../../../core/widgets/settings_switch.dart';
 import '../../../core/widgets/primary_button.dart';
 import '../../auth/repository/auth_repository.dart';
 import 'poll_created_screen.dart';
+import '../../shared/repositories/polls_repository.dart';
 
 class CreatePollScreen extends StatelessWidget {
   const CreatePollScreen({super.key});
@@ -17,7 +16,10 @@ class CreatePollScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => CreatePollBloc(authRepository: AuthRepository()),
+      create: (context) => CreatePollBloc(
+        authRepository: AuthRepository(),
+        pollsRepository: PollsRepository(),
+      ),
       child: const _CreatePollView(),
     );
   }
@@ -228,14 +230,26 @@ class _CreatePollViewState extends State<_CreatePollView> {
                     );
                   }),
 
-                  TextButton.icon(
-                    onPressed: _addOption,
-                    icon: const Icon(Icons.add, color: AppColors.textPrimary),
-                    label: const Text(
-                      "Add option",
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.bold,
+                  InkWell(
+                    onTap: _addOption,
+                    // Додаємо сплеш-ефект при натисканні
+                    borderRadius: BorderRadius.circular(4),
+                    child: Padding(
+                      // Відступи, щоб кнопка була візуально вирівняна
+                      padding: const EdgeInsets.symmetric(vertical: 12.0),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.add, color: AppColors.textPrimary),
+                          SizedBox(width: 8),
+                          Text(
+                            "Add option",
+                            style: TextStyle(
+                              fontFamily: 'Inter',
+                              color: AppColors.textPrimary,
+                              fontSize: 16,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
@@ -267,7 +281,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
                   // --- Submit Button ---
                   PrimaryButton(
                     text: isLoading ? 'CREATING...' : 'CREATE',
-                    // Якщо вантажиться - блокуємо натискання
+                    // If loading, disable button
                     onPressed: isLoading ? () {} : _createPoll,
                   ),
                   const SizedBox(height: 20),

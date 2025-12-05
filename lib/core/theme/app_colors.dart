@@ -14,8 +14,13 @@ class AppColors {
   static const Color cardOutline = Color(0xFFD0D0D0);
   static const Color redText = Color(0xFFA83232);
   static const Color error = Color(0xFFD64545); // Warm muted red
+  static const Color destructive = Color(0xFFD64545); // Warm muted red
+  static const Color mutedDestructive = Color(0xFFca8383); // Warm muted red
   static const Color errorLight = Color(0xFFF2B8B8); // Light red background
   static const Color warning = Color(0xFFc2a24c); //
   static const Color warningLight = Color(0xFFF6E3B3); // Soft for warnings
   static const Color charcoal = Color(0xFF1A1A1A);
+
+  static const Color optionOutline = Color(0xFFD0D0D0);
+  static const Color optionInactive = Color(0x7F717171); // 50% opacity gray
 }
