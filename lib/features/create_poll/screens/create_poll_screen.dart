@@ -36,20 +36,6 @@ class CreatePollScreen extends StatelessWidget {
             child: Column(
               children: [
                 PrimaryButton(
-                  text: 'LOG OUT???',
-                  onPressed: () async {
-                    await FirebaseAnalytics.instance.logEvent(
-                      name: 'manual_logout',
-                    );
-
-                    if (context.mounted) {
-                      Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => const LoginScreen()),
-                      );
-                    }
-                  },
-                ),
-                PrimaryButton(
                   text: 'Test Crash!!!',
                   color: const Color(0xFFB75D69),
                   onPressed: () {
@@ -61,6 +47,7 @@ class CreatePollScreen extends StatelessWidget {
           ),
         ),
       ),
+
     );
   }
 }

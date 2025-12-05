@@ -40,7 +40,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
         await _authRepository.signUp(
           email: _emailController.text.trim(),
           password: _passwordController.text,
+          displayName: _nameController.text.trim(),
         );
+
         await FirebaseAnalytics.instance.logSignUp(
           signUpMethod: 'email_password',
         );

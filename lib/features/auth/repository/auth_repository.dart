@@ -8,12 +8,19 @@ class AuthRepository {
 
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
-  Future<void> signUp({required String email, required String password}) async {
+  Future<void> signUp({
+    required String email,
+    required String password,
+    String? displayName,
+  }) async {
     try {
-      await _firebaseAuth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      UserCredential credential = await _firebaseAuth
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      if (displayName != null && displayName.isNotEmpty) {
+        await credential.user?.updateDisplayName(displayName);
+        await credential.user?.reload();
+      }
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         throw Exception('Weak password.');
@@ -26,6 +33,7 @@ class AuthRepository {
       throw Exception(e.toString());
     }
   }
+
 
   Future<void> signIn({required String email, required String password}) async {
     try {
