@@ -6,6 +6,8 @@ class AuthRepository {
   AuthRepository({FirebaseAuth? firebaseAuth})
     : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
 
+  String? get currentUserId => _firebaseAuth.currentUser?.uid;
+
   Stream<User?> get authStateChanges => _firebaseAuth.authStateChanges();
 
   Future<void> signUp({
@@ -33,7 +35,6 @@ class AuthRepository {
       throw Exception(e.toString());
     }
   }
-
 
   Future<void> signIn({required String email, required String password}) async {
     try {
