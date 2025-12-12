@@ -1,10 +1,14 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../core/utils/color_generator.dart';
 
 class AuthRepository {
   final FirebaseAuth _firebaseAuth;
+  final FirebaseFirestore _firestore;
 
-  AuthRepository({FirebaseAuth? firebaseAuth})
-    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance;
+  AuthRepository({FirebaseAuth? firebaseAuth, FirebaseFirestore? firestore})
+    : _firebaseAuth = firebaseAuth ?? FirebaseAuth.instance,
+      _firestore = firestore ?? FirebaseFirestore.instance;
 
   String? get currentUserId => _firebaseAuth.currentUser?.uid;
 
@@ -21,8 +25,22 @@ class AuthRepository {
 
       if (displayName != null && displayName.isNotEmpty) {
         await credential.user?.updateDisplayName(displayName);
-        await credential.user?.reload();
       }
+
+      if (credential.user != null) {
+        final newUser = credential.user!;
+
+        final avatarColor = generatePleasantColor();
+
+        await _firestore.collection('users').doc(newUser.uid).set({
+          'uid': newUser.uid,
+          'displayName': displayName ?? '',
+          'email': email,
+          'avatarColor': avatarColor.toARGB32(),
+        });
+      }
+
+      await credential.user?.reload();
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         throw Exception('Weak password.');

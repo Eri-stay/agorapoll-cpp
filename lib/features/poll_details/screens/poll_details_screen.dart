@@ -8,6 +8,7 @@ import '../bloc/poll_detail_bloc.dart';
 import '../bloc/poll_detail_event.dart';
 import '../bloc/poll_detail_state.dart';
 import 'voting_tab.dart';
+import 'results_tab.dart';
 import '../../shared/widgets/poll_action_menu.dart';
 
 class PollDetailsScreen extends StatelessWidget {
@@ -144,9 +145,7 @@ class _PollDetailsView extends StatelessWidget {
                 return TabBarView(
                   children: [
                     VotingTab(state: state), // Вкладка голосування
-                    const Center(
-                      child: Text("Results Placeholder"),
-                    ), // Вкладка результатів
+                    ResultsTab(initialState: state),
                   ],
                 );
               }

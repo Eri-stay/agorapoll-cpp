@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:equatable/equatable.dart';
 
-class Poll {
+class Poll extends Equatable {
   final String id;
   final String creatorId;
   final String code;
@@ -59,4 +60,17 @@ class Poll {
       createdAt: (map['createdAt'] as Timestamp).toDate(),
     );
   }
+  @override
+  List<Object?> get props => [
+    id,
+    creatorId,
+    code,
+    question,
+    options,
+    isAnonymous,
+    allowMultiple,
+    isChangeable,
+    isClosed,
+    createdAt,
+  ];
 }

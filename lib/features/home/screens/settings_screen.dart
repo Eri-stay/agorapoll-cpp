@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
 import '../../../core/widgets/primary_button.dart';
@@ -18,6 +19,36 @@ class _SettingsScreenState extends State<SettingsScreen> {
   // Current logged-in user
   final User? currentUser = FirebaseAuth.instance.currentUser;
   final AuthRepository _authRepository = AuthRepository();
+
+  Map<String, dynamic>? _userData;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    if (currentUser != null) {
+      try {
+        final doc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(currentUser!.uid)
+            .get();
+        if (doc.exists) {
+          setState(() {
+            _userData = doc.data();
+          });
+        }
+      } catch (e) {
+        print("Error loading user data: $e");
+      }
+    }
+    setState(() {
+      _isLoading = false;
+    });
+  }
 
   // Logout handler
   Future<void> _handleLogout() async {
@@ -39,6 +70,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final Color avatarColor =
+        _userData != null && _userData!['avatarColor'] != null
+        ? Color(_userData!['avatarColor'])
+        : const Color(0xFF8DAAAA); // Colour fallback
+
+    final String displayName =
+        _userData?['displayName'] ??
+        currentUser?.displayName ??
+        'Anonymous User';
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -66,7 +107,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
           child: Column(
             children: [
-              _ProfileSection(user: currentUser),
+              _ProfileSection(
+                user: currentUser,
+                avatarColor: avatarColor,
+                displayName: displayName,
+              ),
               const Divider(height: 32),
               _SettingsSection(
                 title: 'NOTIFICATIONS',
@@ -192,7 +237,14 @@ class _SettingsSectionState extends State<_SettingsSection> {
 // --- Profile Section Widget ---
 class _ProfileSection extends StatelessWidget {
   final User? user;
-  const _ProfileSection({this.user});
+  final Color avatarColor;
+  final String displayName;
+
+  const _ProfileSection({
+    this.user,
+    required this.avatarColor,
+    required this.displayName,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -219,7 +271,7 @@ class _ProfileSection extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 32,
-                  backgroundColor: const Color(0xFF8DAAAA),
+                  backgroundColor: avatarColor,
                   child: Text(
                     initial,
                     style: const TextStyle(
@@ -239,7 +291,7 @@ class _ProfileSection extends StatelessWidget {
                       border: Border.all(color: AppColors.background, width: 2),
                     ),
                     child: const Icon(
-                      Icons.camera_alt,
+                      Icons.brush,
                       color: Colors.white,
                       size: 16,
                     ),
@@ -250,7 +302,7 @@ class _ProfileSection extends StatelessWidget {
             ),
             const SizedBox(width: 16),
             const Text(
-              'Click to change your avatar',
+              'Click to change your colour',
               style: TextStyle(
                 fontFamily: 'Inter',
                 color: AppColors.textSecondary,
@@ -265,7 +317,7 @@ class _ProfileSection extends StatelessWidget {
         ),
         const SizedBox(height: 8),
         TextFormField(
-          initialValue: user?.displayName ?? 'Anonymous User',
+          initialValue: displayName,
           decoration: InputDecoration(
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(4)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12),

@@ -1,7 +1,11 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../auth/repository/auth_repository.dart';
 import '../../shared/repositories/polls_repository.dart';
+import '../models/poll_result_model.dart';
+import '../models/voter_model.dart';
 import 'poll_detail_event.dart';
 import 'poll_detail_state.dart';
 
@@ -9,6 +13,7 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
   final PollsRepository _pollsRepository;
   final AuthRepository _authRepository;
   StreamSubscription? _pollSubscription;
+  StreamSubscription? _votesSubscription;
 
   PollDetailBloc({
     required PollsRepository pollsRepository,
@@ -20,6 +25,8 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     on<UpdateSelection>(_onUpdateSelection);
     on<SubmitVote>(_onSubmitVote);
     on<EnableRevote>(_onEnableRevote);
+    on<LoadPollResults>(_onLoadResults);
+    on<PollResultsUpdated>(_onResultsUpdated);
   }
 
   Future<void> _onLoad(
@@ -37,7 +44,9 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     _pollSubscription = _pollsRepository.getPollStream(event.pollId).listen((
       poll,
     ) {
-      if (poll != null && !isClosed) {}
+      if (poll != null && !isClosed) {
+        // Can update poll details in state if title etc. changed.
+      }
     });
 
     // Отримуємо початковий стан даних
@@ -136,9 +145,150 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     }
   }
 
+  Future<void> _onLoadResults(
+    LoadPollResults event,
+    Emitter<PollDetailState> emit,
+  ) async {
+    if (state is! PollDetailLoaded) return;
+    final loadedState = state as PollDetailLoaded;
+
+    emit(PollResultsLoading());
+
+    await _votesSubscription?.cancel();
+    _votesSubscription = _pollsRepository
+        .getVotesStream(loadedState.poll.id)
+        .listen((snapshot) {
+          add(
+            PollResultsUpdated(
+              votesSnapshot: snapshot,
+              poll: loadedState.poll,
+              myVote: loadedState.submittedSelection,
+            ),
+          );
+        });
+  }
+
+  Future<void> _onResultsUpdated(
+    PollResultsUpdated event,
+    Emitter<PollDetailState> emit,
+  ) async {
+    final poll = event.poll;
+    final myVote = event.myVote;
+
+    final votes = event.votesSnapshot.docs;
+    final totalVotes = votes.length;
+    Map<String, OptionResult> resultsByOption = {};
+
+    // 1. Ініціалізація
+    for (var option in poll.options) {
+      resultsByOption[option] = OptionResult(
+        optionText: option,
+        voteCount: 0,
+        percentage: 0.0,
+        voters: [],
+      );
+    }
+
+    // 2. Підрахунок голосів
+    for (var vote in votes) {
+      final data = vote.data() as Map<String, dynamic>;
+      final List<String> selected = List<String>.from(
+        data['selectedOptions'] ?? [],
+      );
+      for (var option in selected) {
+        if (resultsByOption.containsKey(option)) {
+          final oldResult = resultsByOption[option]!;
+          resultsByOption[option] = OptionResult(
+            optionText: option,
+            voteCount: oldResult.voteCount + 1,
+            percentage: 0.0,
+            voters: oldResult.voters,
+          );
+        }
+      }
+    }
+
+    // 3. Завантаження даних юзерів (якщо потрібно)
+    if (!poll.isAnonymous) {
+      List<Future> userFutures = [];
+      Map<String, DocumentSnapshot> userDataCache = {};
+
+      for (var vote in votes) {
+        userFutures.add(
+          _pollsRepository
+              .getUserData(vote.id)
+              .then((doc) {
+                // Put user data into cache only if exists
+                if (doc.exists) {
+                  userDataCache[vote.id] = doc;
+                }
+              })
+              .catchError((error) {
+                print('Failed to load user data for ${vote.id}: $error');
+              }),
+        );
+      }
+
+      await Future.wait(userFutures);
+
+      for (var vote in votes) {
+        final userId = vote.id;
+        final userDoc = userDataCache[userId];
+        if (userDoc != null && userDoc.exists) {
+          final userData = userDoc.data() as Map<String, dynamic>;
+          final voter = Voter(
+            id: userId,
+            displayName: userData['displayName'] ?? 'N/A',
+            avatarColor: Color(userData['avatarColor'] ?? Colors.grey.value),
+          );
+          final List<String> selected = List<String>.from(
+            (vote.data() as Map<String, dynamic>)['selectedOptions'] ?? [],
+          );
+          for (var option in selected) {
+            if (resultsByOption.containsKey(option)) {
+              final oldResult = resultsByOption[option]!;
+
+              final newVoters = List<Voter>.from(oldResult.voters)..add(voter);
+
+              resultsByOption[option] = OptionResult(
+                optionText: oldResult.optionText,
+                voteCount: oldResult.voteCount,
+                percentage: oldResult.percentage,
+                voters: newVoters,
+              );
+            }
+          }
+        }
+      }
+    }
+
+    // 4. Розрахунок відсотків
+    final finalResultsByOption = <String, OptionResult>{};
+    resultsByOption.forEach((optionText, result) {
+      final percentage = totalVotes > 0 ? result.voteCount / totalVotes : 0.0;
+      finalResultsByOption[optionText] = OptionResult(
+        optionText: result.optionText,
+        voteCount: result.voteCount,
+        percentage: percentage,
+        voters: result.voters,
+      );
+    });
+
+    final finalResult = PollResult(
+      totalVotes: totalVotes,
+      resultsByOption: finalResultsByOption,
+    );
+
+    // 5. Випускаємо фінальний стан
+    emit(
+      PollResultsLoaded(pollResult: finalResult, poll: poll, myVote: myVote),
+    );
+  }
+
   @override
   Future<void> close() {
     _pollSubscription?.cancel();
+    _votesSubscription?.cancel();
     return super.close();
   }
 }

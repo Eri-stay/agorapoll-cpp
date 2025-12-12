@@ -86,4 +86,18 @@ class PollsRepository {
       throw Exception('Failed to vote: $e');
     }
   }
+
+  // 6. Отримати потік всіх голосів за опитування
+  Stream<QuerySnapshot> getVotesStream(String pollId) {
+    return _firestore
+        .collection('polls')
+        .doc(pollId)
+        .collection('votes')
+        .snapshots();
+  }
+
+  // 7. Отримати дані користувача за ID
+  Future<DocumentSnapshot> getUserData(String userId) {
+    return _firestore.collection('users').doc(userId).get();
+  }
 }

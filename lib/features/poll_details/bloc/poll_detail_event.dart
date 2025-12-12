@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import '../../../data/models/poll_model.dart';
 
 abstract class PollDetailEvent extends Equatable {
   const PollDetailEvent();
@@ -23,8 +25,26 @@ class UpdateSelection extends PollDetailEvent {
   List<Object> get props => [option, allowMultiple];
 }
 
+class PollResultsUpdated extends PollDetailEvent {
+  final QuerySnapshot votesSnapshot;
+  final Poll poll;
+  final List<String> myVote;
+
+  const PollResultsUpdated({
+    required this.votesSnapshot,
+    required this.poll,
+    required this.myVote,
+  });
+
+  @override
+  List<Object> get props => [votesSnapshot, poll, myVote];
+}
+
 // Submit vote to the server
 class SubmitVote extends PollDetailEvent {}
 
 // Pressed "Change Vote"
 class EnableRevote extends PollDetailEvent {}
+
+//Load poll results
+class LoadPollResults extends PollDetailEvent {}

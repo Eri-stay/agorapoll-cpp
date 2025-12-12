@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../../data/models/poll_model.dart';
+import '../models/poll_result_model.dart';
+import 'package:uuid/uuid.dart';
 
 abstract class PollDetailState extends Equatable {
   const PollDetailState();
@@ -8,6 +10,8 @@ abstract class PollDetailState extends Equatable {
 }
 
 class PollDetailLoading extends PollDetailState {}
+
+class PollResultsLoading extends PollDetailState {}
 
 class PollDetailError extends PollDetailState {
   final String message;
@@ -60,4 +64,22 @@ class PollDetailLoaded extends PollDetailState {
     isSubmitting,
     isAuthor,
   ];
+}
+
+class PollResultsLoaded extends PollDetailState {
+  final PollResult pollResult;
+  final Poll poll; // Needed for the isAnonymous flag
+  final List<String> myVote; // To highlight the user's choice
+  late final String id;
+
+  PollResultsLoaded({
+    required this.pollResult,
+    required this.poll,
+    required this.myVote,
+  }) {
+    id = const Uuid().v4();
+  }
+
+  @override
+  List<Object> get props => [pollResult, poll, myVote, id];
 }
