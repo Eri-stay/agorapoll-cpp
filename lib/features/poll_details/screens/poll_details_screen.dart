@@ -28,8 +28,43 @@ class PollDetailsScreen extends StatelessWidget {
   }
 }
 
-class _PollDetailsView extends StatelessWidget {
+class _PollDetailsView extends StatefulWidget {
   const _PollDetailsView({Key? key}) : super(key: key);
+
+  @override
+  State<_PollDetailsView> createState() => _PollDetailsViewState();
+}
+
+class _PollDetailsViewState extends State<_PollDetailsView>
+    with SingleTickerProviderStateMixin {
+  // <--- Додай Ticker
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    _tabController.addListener(_handleTabSelection);
+  }
+
+  void _handleTabSelection() {
+    // Якщо вибрана друга вкладка (Results)
+    if (_tabController.index == 1) {
+      // Перевіряємо, чи BLoC у правильному стані, щоб уникнути помилок
+      final currentState = context.read<PollDetailBloc>().state;
+      if (currentState is PollDetailLoaded && currentState.pollResult == null) {
+        // Завантажуємо результати, тільки якщо вони ще не завантажені
+        context.read<PollDetailBloc>().add(LoadPollResults());
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.removeListener(_handleTabSelection);
+    _tabController.dispose();
+    super.dispose();
+  }
 
   void _copyCode(BuildContext context, String code) {
     Clipboard.setData(ClipboardData(text: code));
@@ -114,7 +149,8 @@ class _PollDetailsView extends StatelessWidget {
               preferredSize: const Size.fromHeight(50),
               child: Container(
                 color: Colors.grey[200], // Сіра смужка під табами
-                child: const TabBar(
+                child: TabBar(
+                  controller: _tabController,
                   labelColor: AppColors.textPrimary,
                   unselectedLabelColor: AppColors.textSecondary,
                   indicatorColor: AppColors.accentGold,
@@ -143,9 +179,10 @@ class _PollDetailsView extends StatelessWidget {
               }
               if (state is PollDetailLoaded) {
                 return TabBarView(
+                  controller: _tabController,
                   children: [
                     VotingTab(state: state), // Вкладка голосування
-                    ResultsTab(initialState: state),
+                    ResultsTab(state: state),
                   ],
                 );
               }

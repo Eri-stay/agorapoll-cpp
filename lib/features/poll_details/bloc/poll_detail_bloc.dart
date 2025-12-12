@@ -150,19 +150,20 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     Emitter<PollDetailState> emit,
   ) async {
     if (state is! PollDetailLoaded) return;
-    final loadedState = state as PollDetailLoaded;
+    final currentState = state as PollDetailLoaded;
 
-    emit(PollResultsLoading());
+    // Вмикаємо прапорець завантаження
+    emit(currentState.copyWith(isResultsLoading: true));
 
     await _votesSubscription?.cancel();
     _votesSubscription = _pollsRepository
-        .getVotesStream(loadedState.poll.id)
+        .getVotesStream(currentState.poll.id)
         .listen((snapshot) {
           add(
             PollResultsUpdated(
               votesSnapshot: snapshot,
-              poll: loadedState.poll,
-              myVote: loadedState.submittedSelection,
+              poll: currentState.poll,
+              myVote: currentState.submittedSelection,
             ),
           );
         });
@@ -172,6 +173,9 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     PollResultsUpdated event,
     Emitter<PollDetailState> emit,
   ) async {
+    if (state is! PollDetailLoaded) return;
+    final currentState = state as PollDetailLoaded;
+
     final poll = event.poll;
     final myVote = event.myVote;
 
@@ -281,7 +285,10 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
 
     // 5. Випускаємо фінальний стан
     emit(
-      PollResultsLoaded(pollResult: finalResult, poll: poll, myVote: myVote),
+      currentState.copyWith(
+        pollResult: finalResult,
+        isResultsLoading: false, // Вимикаємо прапорець завантаження
+      ),
     );
   }
 

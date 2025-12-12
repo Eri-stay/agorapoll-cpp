@@ -1,32 +1,34 @@
 import 'package:equatable/equatable.dart';
 import '../../../data/models/poll_model.dart';
 import '../models/poll_result_model.dart';
-import 'package:uuid/uuid.dart';
 
 abstract class PollDetailState extends Equatable {
   const PollDetailState();
   @override
-  List<Object> get props => [];
+  List<Object?> get props => [];
 }
 
 class PollDetailLoading extends PollDetailState {}
-
-class PollResultsLoading extends PollDetailState {}
 
 class PollDetailError extends PollDetailState {
   final String message;
   const PollDetailError(this.message);
   @override
-  List<Object> get props => [message];
+  List<Object?> get props => [message];
 }
 
+// --- ЦЕ ТЕПЕР НАШ ЄДИНИЙ СТАН З ДАНИМИ ---
 class PollDetailLoaded extends PollDetailState {
   final Poll poll;
-  final List<String> currentSelection; // UI
-  final List<String> submittedSelection; // DB
-  final bool hasVoted; // Whether the vote has been submitted
-  final bool isSubmitting; // For spinner on the button
-  final bool isAuthor; // Whether the current user is the author
+  final List<String> currentSelection;
+  final List<String> submittedSelection;
+  final bool hasVoted;
+  final bool isSubmitting;
+  final bool isAuthor;
+
+  // --- НОВІ ПОЛЯ ---
+  final bool isResultsLoading; // Прапорець завантаження результатів
+  final PollResult? pollResult; // Результати (можуть бути null)
 
   const PollDetailLoaded({
     required this.poll,
@@ -35,6 +37,8 @@ class PollDetailLoaded extends PollDetailState {
     this.hasVoted = false,
     this.isSubmitting = false,
     this.isAuthor = false,
+    this.isResultsLoading = false, // За замовчуванням
+    this.pollResult, // За замовчуванням null
   });
 
   PollDetailLoaded copyWith({
@@ -44,6 +48,8 @@ class PollDetailLoaded extends PollDetailState {
     bool? hasVoted,
     bool? isSubmitting,
     bool? isAuthor,
+    bool? isResultsLoading,
+    PollResult? pollResult,
   }) {
     return PollDetailLoaded(
       poll: poll ?? this.poll,
@@ -52,34 +58,24 @@ class PollDetailLoaded extends PollDetailState {
       hasVoted: hasVoted ?? this.hasVoted,
       isSubmitting: isSubmitting ?? this.isSubmitting,
       isAuthor: isAuthor ?? this.isAuthor,
+      isResultsLoading: isResultsLoading ?? this.isResultsLoading,
+      pollResult: pollResult ?? this.pollResult,
     );
   }
 
   @override
-  List<Object> get props => [
+  List<Object?> get props => [
     poll,
     currentSelection,
     submittedSelection,
     hasVoted,
     isSubmitting,
     isAuthor,
+    isResultsLoading,
+    pollResult,
   ];
 }
 
-class PollResultsLoaded extends PollDetailState {
-  final PollResult pollResult;
-  final Poll poll; // Needed for the isAnonymous flag
-  final List<String> myVote; // To highlight the user's choice
-  late final String id;
-
-  PollResultsLoaded({
-    required this.pollResult,
-    required this.poll,
-    required this.myVote,
-  }) {
-    id = const Uuid().v4();
-  }
-
-  @override
-  List<Object> get props => [pollResult, poll, myVote, id];
-}
+// ВИДАЛЯЄМО ЦІ КЛАСИ:
+// class PollResultsLoading extends PollDetailState {}
+// class PollResultsLoaded extends PollDetailState {}

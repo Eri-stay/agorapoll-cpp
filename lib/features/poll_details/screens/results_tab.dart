@@ -1,87 +1,65 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
-import '../bloc/poll_detail_bloc.dart';
-import '../bloc/poll_detail_event.dart';
+import '../../../core/widgets/zig_zag_divider.dart';
 import '../bloc/poll_detail_state.dart';
 import '../models/poll_result_model.dart';
 import '../models/voter_model.dart';
 
-class ResultsTab extends StatefulWidget {
-  final PollDetailLoaded initialState;
-  const ResultsTab({Key? key, required this.initialState}) : super(key: key);
-
-  @override
-  State<ResultsTab> createState() => _ResultsTabState();
-}
-
-class _ResultsTabState extends State<ResultsTab> {
-  @override
-  void initState() {
-    super.initState();
-    context.read<PollDetailBloc>().add(LoadPollResults());
-  }
+/// Віджет для вкладки "Results", який тепер є простим "тупим" віджетом.
+/// Він лише відображає дані, які отримує зі стану `PollDetailLoaded`.
+class ResultsTab extends StatelessWidget {
+  final PollDetailLoaded state;
+  const ResultsTab({Key? key, required this.state}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<PollDetailBloc, PollDetailState>(
-      buildWhen: (previous, current) {
-        // return current is PollResultsLoading ||
-        //     current is PollResultsLoaded ||
-        //     current is PollDetailError;
-        print(
-          "BuildWhen fired. Previous: $previous, Current: $current",
-        ); //qwerty
-        return true;
-      },
-      builder: (context, state) {
-        print("Builder fired with state: $state"); //qwerty
-        if (state is PollResultsLoading) {
-          return const Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                CircularProgressIndicator(color: AppColors.accentGold),
-                SizedBox(height: 16),
-                Text(
-                  "Counting the ballots...",
-                  style: TextStyle(color: AppColors.textSecondary),
-                ),
-              ],
+    // 1. Показуємо спінер, якщо ввімкнено прапорець `isResultsLoading`.
+    if (state.isResultsLoading) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(color: AppColors.accentGold),
+            SizedBox(height: 16),
+            Text(
+              "Counting the ballots...",
+              style: TextStyle(color: AppColors.textSecondary),
             ),
-          );
-        }
+          ],
+        ),
+      );
+    }
 
-        if (state is PollResultsLoaded) {
-          return _ResultsView(state: state);
-        }
-
-        // Поки вантажиться, можна показати скелет або просто питання
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
+    // 2. Якщо результати ще не завантажені (тобто pollResult == null).
+    // Це буде відображатися, поки користувач не перейде на цю вкладку вперше.
+    if (state.pollResult == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32.0),
           child: Text(
-            widget.initialState.poll.question.toUpperCase(),
-            style: const TextStyle(
-              fontFamily: 'Cinzel',
-              fontSize: 20,
-              color: AppColors.textPrimary,
-              height: 1.4,
-            ),
+            "The results will be loaded once you switch to this tab.",
+            textAlign: TextAlign.center,
+            style: TextStyle(color: AppColors.textSecondary, fontSize: 16),
           ),
-        );
-      },
-    );
+        ),
+      );
+    }
+
+    // 3. Якщо результати завантажені, показуємо їх через `_ResultsView`.
+    return _ResultsView(state: state);
   }
 }
 
+/// Внутрішній віджет для відображення завантажених результатів.
 class _ResultsView extends StatelessWidget {
-  final PollResultsLoaded state;
+  final PollDetailLoaded state;
   const _ResultsView({required this.state});
 
   @override
   Widget build(BuildContext context) {
     final poll = state.poll;
-    final results = state.pollResult;
+    // Тепер ми впевнені, що pollResult не є null, тому використовуємо `!`.
+    final results = state.pollResult!;
 
     if (results.totalVotes == 0) {
       return const Center(
@@ -109,19 +87,24 @@ class _ResultsView extends StatelessWidget {
           ),
           const SizedBox(height: 32),
 
+          // Загальні результати (прогрес-бари)
           ...poll.options.map((optionText) {
             final optionResult = results.resultsByOption[optionText]!;
-            final didIVoteForThis = state.myVote.contains(optionText);
+            final didIVoteForThis = state.submittedSelection.contains(
+              optionText,
+            );
             return _ResultSummaryBar(
               result: optionResult,
               didIVoteForThis: didIVoteForThis,
             );
           }).toList(),
 
+          // Детальні результати (списки юзерів), якщо не анонімно
           if (!poll.isAnonymous) ...[
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 24.0),
+              child: ZigZagDivider(),
+            ),
             ...poll.options.map((optionText) {
               final optionResult = results.resultsByOption[optionText]!;
               if (optionResult.voteCount == 0) return const SizedBox.shrink();
