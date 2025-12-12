@@ -215,6 +215,7 @@ class _VoterTile extends StatelessWidget {
           CircleAvatar(
             radius: 18,
             backgroundColor: voter.avatarColor,
+
             child: Text(
               voter.displayName.isNotEmpty
                   ? voter.displayName[0].toUpperCase()

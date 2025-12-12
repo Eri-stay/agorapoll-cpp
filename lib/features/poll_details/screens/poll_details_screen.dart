@@ -11,6 +11,7 @@ import 'voting_tab.dart';
 import 'results_tab.dart';
 import '../../shared/widgets/poll_action_menu.dart';
 
+/// Батьківський віджет, який надає BLoC дереву.
 class PollDetailsScreen extends StatelessWidget {
   final String pollId;
 
@@ -23,11 +24,13 @@ class PollDetailsScreen extends StatelessWidget {
         pollsRepository: PollsRepository(),
         authRepository: AuthRepository(),
       )..add(LoadPollDetails(pollId)),
-      child: DefaultTabController(length: 2, child: const _PollDetailsView()),
+      // Ми не використовуємо DefaultTabController, бо керуємо ним вручну
+      child: const _PollDetailsView(),
     );
   }
 }
 
+/// Основний Stateful віджет, що керує TabController та відображенням.
 class _PollDetailsView extends StatefulWidget {
   const _PollDetailsView({Key? key}) : super(key: key);
 
@@ -37,23 +40,25 @@ class _PollDetailsView extends StatefulWidget {
 
 class _PollDetailsViewState extends State<_PollDetailsView>
     with SingleTickerProviderStateMixin {
-  // <--- Додай Ticker
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    // Ініціалізуємо TabController, вказуючи `vsync: this`
     _tabController = TabController(length: 2, vsync: this);
+    // Додаємо слухача, щоб реагувати на зміну вкладок
     _tabController.addListener(_handleTabSelection);
   }
 
+  /// Метод, що викликається при кожній зміні вкладки.
   void _handleTabSelection() {
-    // Якщо вибрана друга вкладка (Results)
-    if (_tabController.index == 1) {
-      // Перевіряємо, чи BLoC у правильному стані, щоб уникнути помилок
+    // Якщо вибрана друга вкладка (індекс 1 - "Results")
+    if (_tabController.indexIsChanging && _tabController.index == 1) {
       final currentState = context.read<PollDetailBloc>().state;
+      // Завантажуємо результати, тільки якщо BLoC у правильному стані
+      // і якщо результати ще не були завантажені (`pollResult == null`).
       if (currentState is PollDetailLoaded && currentState.pollResult == null) {
-        // Завантажуємо результати, тільки якщо вони ще не завантажені
         context.read<PollDetailBloc>().add(LoadPollResults());
       }
     }
@@ -68,6 +73,7 @@ class _PollDetailsViewState extends State<_PollDetailsView>
 
   void _copyCode(BuildContext context, String code) {
     Clipboard.setData(ClipboardData(text: code));
+    ScaffoldMessenger.of(context).hideCurrentSnackBar();
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text(
@@ -84,21 +90,38 @@ class _PollDetailsViewState extends State<_PollDetailsView>
   Widget build(BuildContext context) {
     return BlocConsumer<PollDetailBloc, PollDetailState>(
       listener: (context, state) {
-        if (state is PollDetailLoaded &&
-            state.hasVoted &&
-            !state.isSubmitting) {
-          // to do Перевірка, щоб не показувати це при кожному ребілді (можна покращити через Action State)
+        // Реакція на одноразові події
+
+        if (state is PollDeleted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text("Poll was successfully deleted"),
+              backgroundColor: AppColors.snackBarGrey,
+            ),
+          );
+        }
+
+        if (state is PollDetailError) {
+          // Показуємо будь-яку іншу помилку
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+              backgroundColor: AppColors.error,
+            ),
+          );
         }
       },
       builder: (context, state) {
+        // Визначаємо змінні для AppBar на основі поточного стану
         String title = "LOADING...";
         String? code;
-        bool isAuthor = false;
 
         if (state is PollDetailLoaded) {
           title = state.poll.code;
           code = state.poll.code;
-          isAuthor = state.isAuthor;
         }
 
         return Scaffold(
@@ -127,20 +150,18 @@ class _PollDetailsViewState extends State<_PollDetailsView>
                   icon: const Icon(Icons.copy, color: AppColors.textSecondary),
                   onPressed: () => _copyCode(context, code!),
                 ),
+              // Показуємо меню, тільки якщо дані завантажені
               if (state is PollDetailLoaded)
                 PollActionMenu(
                   poll: state.poll,
-                  isAuthor: state.isAuthor, // Get from BLoC
+                  isAuthor: state.isAuthor,
                   onDelete: () {
-                    // TO DO: Додати подію в PollDetailBloc для видалення
-                    print("Deleting poll from details: ${state.poll.id}");
+                    context.read<PollDetailBloc>().add(DeletePoll());
                   },
                   onClose: () {
-                    // TO DO: Додати подію в PollDetailBloc для закриття
-                    print("Closing poll from details: ${state.poll.id}");
+                    context.read<PollDetailBloc>().add(TogglePollStatus());
                   },
                   onReport: () {
-                    // TO DO: Додати подію в PollDetailBloc для скарги
                     print("Reporting poll: ${state.poll.id}");
                   },
                 ),
@@ -148,18 +169,22 @@ class _PollDetailsViewState extends State<_PollDetailsView>
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(50),
               child: Container(
-                color: Colors.grey[200], // Сіра смужка під табами
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFE0E0E0), width: 1.0),
+                  ),
+                ),
                 child: TabBar(
                   controller: _tabController,
                   labelColor: AppColors.textPrimary,
                   unselectedLabelColor: AppColors.textSecondary,
                   indicatorColor: AppColors.accentGold,
                   indicatorWeight: 3,
-                  labelStyle: TextStyle(
+                  labelStyle: const TextStyle(
                     fontFamily: 'Inter',
                     fontWeight: FontWeight.bold,
                   ),
-                  tabs: [
+                  tabs: const [
                     Tab(text: "My Vote"),
                     Tab(text: "Results"),
                   ],
@@ -169,23 +194,30 @@ class _PollDetailsViewState extends State<_PollDetailsView>
           ),
           body: Builder(
             builder: (context) {
+              // Логіка відображення тіла екрану
               if (state is PollDetailLoading) {
                 return const Center(
                   child: CircularProgressIndicator(color: AppColors.accentGold),
                 );
               }
+
               if (state is PollDetailError) {
                 return Center(child: Text(state.message));
               }
+
               if (state is PollDetailLoaded) {
                 return TabBarView(
                   controller: _tabController,
+                  // Запобігаємо свайпу, щоб наш listener працював надійно
+                  physics: const NeverScrollableScrollPhysics(),
                   children: [
-                    VotingTab(state: state), // Вкладка голосування
+                    VotingTab(state: state),
                     ResultsTab(state: state),
                   ],
                 );
               }
+
+              // Повертаємо пустий контейнер для інших випадків
               return const SizedBox.shrink();
             },
           ),

@@ -3,7 +3,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../data/models/poll_model.dart';
 import '../../../core/widgets/confirmation_dialog.dart';
 
-enum PollAction { close, delete, report }
+enum PollAction { toggleStatus, delete, report }
 
 class PollActionMenu extends StatefulWidget {
   final Poll poll;
@@ -46,7 +46,7 @@ class _PollActionMenuState extends State<PollActionMenu> {
           },
         );
         break;
-      case PollAction.close:
+      case PollAction.toggleStatus:
         widget.onClose?.call();
         break;
       case PollAction.report:
@@ -60,9 +60,9 @@ class _PollActionMenuState extends State<PollActionMenu> {
     if (widget.isAuthor) {
       // Menu for the author
       return [
-        const PopupMenuItem<PollAction>(
-          value: PollAction.close,
-          child: Text('Close Poll'),
+        PopupMenuItem<PollAction>(
+          value: PollAction.toggleStatus,
+          child: Text(widget.poll.isClosed ? 'Open Poll' : 'Close Poll'),
         ),
         const PopupMenuItem<PollAction>(
           value: PollAction.delete,

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../data/models/poll_model.dart';
 import '../../poll_details/screens/poll_details_screen.dart';
 import '../../shared/widgets/poll_action_menu.dart';
+import '../bloc/my_polls_bloc.dart';
+import '../bloc/my_polls_event.dart';
 
 class PollCard extends StatelessWidget {
   final Poll poll;
@@ -59,46 +62,20 @@ class PollCard extends StatelessWidget {
                 ),
               ),
 
-              // // Меню "три крапки"
-              // PopupMenuButton<String>(
-              //   onSelected: (value) {
-              //     print('Selected: $value for poll: ${poll.question}');
-              //   },
-              //   icon: Icon(
-              //     Icons.more_vert,
-              //     color: AppColors.textSecondary.withValues(
-              //       alpha: contentOpacity,
-              //     ),
-              //   ),
-
-              //   color: AppColors.background,
-              //   elevation: 4.0,
-
-              //   itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              //     const PopupMenuItem<String>(
-              //       value: 'close',
-              //       child: Text('Close Poll'),
-              //     ),
-              //     const PopupMenuItem<String>(
-              //       value: 'delete',
-              //       child: Text(
-              //         'Delete',
-              //         style: TextStyle(color: AppColors.redText),
-              //       ),
-              //     ),
-              //   ],
-              // ),
               PollActionMenu(
                 poll: poll,
                 isAuthor: true,
                 iconOpacity: contentOpacity,
                 onDelete: () {
-                  // TO DO: Додати подію в MyPollsBloc для видалення
-                  print("Deleting poll from list: ${poll.id}");
+                  context.read<MyPollsBloc>().add(DeletePollFromList(poll.id));
                 },
                 onClose: () {
-                  // TO DO: Додати подію в MyPollsBloc для закриття
-                  print("Closing poll from list: ${poll.id}");
+                  context.read<MyPollsBloc>().add(
+                    TogglePollStatusFromList(
+                      pollId: poll.id,
+                      currentStatus: poll.isClosed,
+                    ),
+                  );
                 },
               ),
             ],

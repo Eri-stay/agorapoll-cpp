@@ -100,4 +100,46 @@ class PollsRepository {
   Future<DocumentSnapshot> getUserData(String userId) {
     return _firestore.collection('users').doc(userId).get();
   }
+
+  // 8. Знайти опитування за кодом
+  Future<Poll?> findPollByCode(String code) async {
+    try {
+      final querySnapshot = await _firestore
+          .collection('polls')
+          .where(
+            'code',
+            isEqualTo: code.toUpperCase(),
+          ) // Важливо: коди зберігаються у верхньому регістрі
+          .limit(1) // Ми очікуємо тільки один результат
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        // Якщо документ знайдено, повертаємо його
+        return Poll.fromMap(querySnapshot.docs.first.data());
+      } else {
+        // Якщо нічого не знайдено, повертаємо null
+        return null;
+      }
+    } catch (e) {
+      throw Exception('Error finding poll: $e');
+    }
+  }
+
+  // 9. Видалити опитування (поки що без видалення голосів)
+  Future<void> deletePoll(String pollId) async {
+    try {
+      await _firestore.collection('polls').doc(pollId).delete();
+    } catch (e) {
+      throw Exception('Failed to delete poll: $e');
+    }
+  }
+
+  // 10. Оновити опитування (для закриття)
+  Future<void> updatePoll(String pollId, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection('polls').doc(pollId).update(data);
+    } catch (e) {
+      throw Exception('Failed to update poll: $e');
+    }
+  }
 }

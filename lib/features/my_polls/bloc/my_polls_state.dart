@@ -33,3 +33,15 @@ class MyPollsError extends MyPollsState {
   @override
   List<Object> get props => [message];
 }
+
+class MyPollsActionFailed extends MyPollsLoaded {
+  final String errorMessage;
+
+  const MyPollsActionFailed({
+    required super.polls, // Беремо список з попереднього стану
+    required this.errorMessage,
+  });
+
+  @override
+  List<Object> get props => [polls, errorMessage];
+}

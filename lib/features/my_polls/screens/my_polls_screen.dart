@@ -20,7 +20,18 @@ class MyPollsScreen extends StatelessWidget {
         pollsRepository: PollsRepository(),
         authRepository: AuthRepository(),
       )..add(LoadMyPolls()),
-      child: BlocBuilder<MyPollsBloc, MyPollsState>(
+      child: BlocConsumer<MyPollsBloc, MyPollsState>(
+        listener: (context, state) {
+          if (state is MyPollsActionFailed) {
+            ScaffoldMessenger.of(context).hideCurrentSnackBar();
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.errorMessage),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           // --- State 1: LOADING ---
           if (state is MyPollsLoading) {

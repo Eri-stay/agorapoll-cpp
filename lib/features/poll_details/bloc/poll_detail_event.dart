@@ -48,3 +48,7 @@ class EnableRevote extends PollDetailEvent {}
 
 //Load poll results
 class LoadPollResults extends PollDetailEvent {}
+
+class DeletePoll extends PollDetailEvent {}
+
+class TogglePollStatus extends PollDetailEvent {}

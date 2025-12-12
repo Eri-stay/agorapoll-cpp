@@ -27,6 +27,8 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
     on<EnableRevote>(_onEnableRevote);
     on<LoadPollResults>(_onLoadResults);
     on<PollResultsUpdated>(_onResultsUpdated);
+    on<DeletePoll>(_onDeletePoll);
+    on<TogglePollStatus>(_onTogglePollStatus);
   }
 
   Future<void> _onLoad(
@@ -290,6 +292,60 @@ class PollDetailBloc extends Bloc<PollDetailEvent, PollDetailState> {
         isResultsLoading: false, // Вимикаємо прапорець завантаження
       ),
     );
+  }
+
+  Future<void> _onDeletePoll(
+    DeletePoll event,
+    Emitter<PollDetailState> emit,
+  ) async {
+    if (state is PollDetailLoaded) {
+      if (state is! PollDetailLoaded) return;
+      final currentState = state as PollDetailLoaded;
+      final pollId = currentState.poll.id;
+      final userId = _authRepository.currentUserId;
+
+      if (userId != currentState.poll.creatorId) {
+        emit(const PollDetailError("Only the author can delete this poll."));
+        return;
+      }
+      try {
+        await _pollsRepository.deletePoll(pollId);
+        emit(PollDeleted());
+      } catch (e) {
+        emit(PollDetailError(e.toString()));
+      }
+    }
+  }
+
+  Future<void> _onTogglePollStatus(
+    TogglePollStatus event,
+    Emitter<PollDetailState> emit,
+  ) async {
+    if (state is! PollDetailLoaded) return;
+    final currentState = state as PollDetailLoaded;
+    final poll = currentState.poll;
+    final userId = _authRepository.currentUserId;
+
+    if (userId != poll.creatorId) {
+      emit(
+        const PollDetailError("Only the author can toggle the poll status."),
+      );
+      return;
+    }
+
+    try {
+      await _pollsRepository.updatePoll(poll.id, {'isClosed': !poll.isClosed});
+
+      // 2. Більше нічого не робимо!
+      // Оскільки `_onLoad` підписаний на стрім змін документа (`getPollStream`),
+      // Firestore автоматично надішле оновлені дані, і UI перебудується сам.
+      // Це і є краса реактивного підходу.
+    } catch (e) {
+      // В ідеалі, треба показати помилку користувачу
+      // Для цього можна додати поле error в PollDetailLoaded state.
+      // Поки що просто логуємо.
+      print("Error toggling poll status: $e");
+    }
   }
 
   @override

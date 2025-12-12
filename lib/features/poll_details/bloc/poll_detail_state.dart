@@ -17,7 +17,6 @@ class PollDetailError extends PollDetailState {
   List<Object?> get props => [message];
 }
 
-// --- ЦЕ ТЕПЕР НАШ ЄДИНИЙ СТАН З ДАНИМИ ---
 class PollDetailLoaded extends PollDetailState {
   final Poll poll;
   final List<String> currentSelection;
@@ -26,7 +25,6 @@ class PollDetailLoaded extends PollDetailState {
   final bool isSubmitting;
   final bool isAuthor;
 
-  // --- НОВІ ПОЛЯ ---
   final bool isResultsLoading; // Прапорець завантаження результатів
   final PollResult? pollResult; // Результати (можуть бути null)
 
@@ -37,7 +35,7 @@ class PollDetailLoaded extends PollDetailState {
     this.hasVoted = false,
     this.isSubmitting = false,
     this.isAuthor = false,
-    this.isResultsLoading = false, // За замовчуванням
+    this.isResultsLoading = false,
     this.pollResult, // За замовчуванням null
   });
 
@@ -76,6 +74,4 @@ class PollDetailLoaded extends PollDetailState {
   ];
 }
 
-// ВИДАЛЯЄМО ЦІ КЛАСИ:
-// class PollResultsLoading extends PollDetailState {}
-// class PollResultsLoaded extends PollDetailState {}
+class PollDeleted extends PollDetailState {}

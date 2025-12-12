@@ -69,6 +69,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
         _optionKeys.removeAt(index);
       });
     } else {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("A poll must have at least 2 options"),
@@ -87,6 +88,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
         .toList();
 
     if (question.isEmpty) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter a question!"),
@@ -97,6 +99,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
     }
 
     if (options.length < 2) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text("Please enter at least 2 options!"),
@@ -132,6 +135,7 @@ class _CreatePollViewState extends State<_CreatePollView> {
           );
         }
         if (state is CreatePollError) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
