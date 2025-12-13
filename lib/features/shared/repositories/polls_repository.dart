@@ -109,15 +109,13 @@ class PollsRepository {
           .where(
             'code',
             isEqualTo: code.toUpperCase(),
-          ) // Важливо: коди зберігаються у верхньому регістрі
-          .limit(1) // Ми очікуємо тільки один результат
+          ) // Important: codes are stored in UpperCase
+          .limit(1)
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        // Якщо документ знайдено, повертаємо його
         return Poll.fromMap(querySnapshot.docs.first.data());
       } else {
-        // Якщо нічого не знайдено, повертаємо null
         return null;
       }
     } catch (e) {

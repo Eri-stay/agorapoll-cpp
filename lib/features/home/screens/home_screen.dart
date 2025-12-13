@@ -11,6 +11,7 @@ import 'help_screen.dart';
 import 'settings_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -103,114 +104,144 @@ class _HomeScreenState extends State<HomeScreen>
     final double columnTotalWidth = screenHeight * 0.132;
     final double hiddenWidth = columnTotalWidth * 0.4;
     final double _menuWidth = min(320, screenWidth - columnTotalWidth * 0.5);
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return const WelcomeScreen();
+    }
 
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: AppColors.background,
       body: SafeArea(
-        child: GestureDetector(
-          onHorizontalDragUpdate: (details) {
-            // Swipe right to open
-            if (details.delta.dx > 0 && _animationController.isDismissed) {
-              if (details.globalPosition.dx < 100) {
-                // Start swipe from left area
-                _animationController.forward();
+        child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+          // Слухаємо дані користувача з Firestore
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            // Визначаємо колір за замовчуванням
+            Color avatarColor = const Color(0xFF8DAAAA); // Колір-заглушка
+            String displayName = user.displayName ?? 'User';
+            String email = user.email ?? '';
+
+            if (snapshot.hasData && snapshot.data!.exists) {
+              final userData = snapshot.data!.data()!;
+              displayName = userData['displayName'] ?? displayName;
+              email = userData['email'] ?? email;
+              if (userData['avatarColor'] != null) {
+                avatarColor = Color(userData['avatarColor']);
               }
             }
-            // Swipe left to close
-            if (details.delta.dx < 0 && _animationController.isCompleted) {
-              _animationController.reverse();
-            }
-          },
-          child: Stack(
-            children: [
-              // Layer 1: Main Content
-              Column(
+
+            return GestureDetector(
+              onHorizontalDragUpdate: (details) {
+                // Swipe right to open
+                if (details.delta.dx > 0 && _animationController.isDismissed) {
+                  if (details.globalPosition.dx < 100) {
+                    // Start swipe from left area
+                    _animationController.forward();
+                  }
+                }
+                // Swipe left to close
+                if (details.delta.dx < 0 && _animationController.isCompleted) {
+                  _animationController.reverse();
+                }
+              },
+              child: Stack(
                 children: [
-                  _buildAppBar(),
-                  Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
-                  _buildBottomNavBar(),
+                  // Layer 1: Main Content
+                  Column(
+                    children: [
+                      _buildAppBar(),
+                      Expanded(child: _widgetOptions.elementAt(_selectedIndex)),
+                      _buildBottomNavBar(),
+                    ],
+                  ),
+
+                  // Layer 2: Dark Overlay
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return _animation.value > 0
+                          ? Positioned.fill(
+                              child: GestureDetector(
+                                onTap: _closeMenu,
+                                child: Container(
+                                  color: Colors.black.withOpacity(
+                                    _animation.value * 0.5,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink();
+                    },
+                  ),
+
+                  // Layer 3: Side Menu Content
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      final user = FirebaseAuth.instance.currentUser;
+                      return Positioned(
+                        left: -_menuWidth * (1 - _animation.value),
+                        top: 0,
+                        bottom: 0,
+                        width: _menuWidth,
+                        child: SideMenu(
+                          displayName: displayName,
+                          email: user?.email,
+                          avatarColor: avatarColor,
+                          onHelpTap: () {
+                            _closeMenu();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const HelpScreen(),
+                              ),
+                            );
+                          },
+                          onSettingsTap: () {
+                            _closeMenu();
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => const SettingsScreen(),
+                              ),
+                            );
+                          },
+                          onLogoutTap: _handleLogout,
+                        ),
+                      );
+                    },
+                  ),
+
+                  // Layer 4: The Column (Handle)
+                  AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      final double startLeft = -hiddenWidth;
+                      final double endLeft = _menuWidth - hiddenWidth;
+                      final double currentLeft =
+                          startLeft +
+                          (_animation.value * (endLeft - startLeft));
+
+                      return Positioned(
+                        left: currentLeft,
+                        top: 0,
+                        bottom: 0,
+                        child: SideMenuColumn(
+                          isOpen: _animation.value > 0.5,
+                          onToggle: _toggleMenu,
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
-
-              // Layer 2: Dark Overlay
-              AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  return _animation.value > 0
-                      ? Positioned.fill(
-                          child: GestureDetector(
-                            onTap: _closeMenu,
-                            child: Container(
-                              color: Colors.black.withOpacity(
-                                _animation.value * 0.5,
-                              ),
-                            ),
-                          ),
-                        )
-                      : const SizedBox.shrink();
-                },
-              ),
-
-              // Layer 3: Side Menu Content
-              AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  final user = FirebaseAuth.instance.currentUser;
-                  return Positioned(
-                    left: -_menuWidth * (1 - _animation.value),
-                    top: 0,
-                    bottom: 0,
-                    width: _menuWidth,
-                    child: SideMenu(
-                      displayName: user?.displayName,
-                      email: user?.email,
-                      onHelpTap: () {
-                        _closeMenu();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const HelpScreen(),
-                          ),
-                        );
-                      },
-                      onSettingsTap: () {
-                        _closeMenu();
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const SettingsScreen(),
-                          ),
-                        );
-                      },
-                      onLogoutTap: _handleLogout,
-                    ),
-                  );
-                },
-              ),
-
-              // Layer 4: The Column (Handle)
-              AnimatedBuilder(
-                animation: _animation,
-                builder: (context, child) {
-                  final double startLeft = -hiddenWidth;
-                  final double endLeft = _menuWidth - hiddenWidth;
-                  final double currentLeft =
-                      startLeft + (_animation.value * (endLeft - startLeft));
-
-                  return Positioned(
-                    left: currentLeft,
-                    top: 0,
-                    bottom: 0,
-                    child: SideMenuColumn(
-                      isOpen: _animation.value > 0.5,
-                      onToggle: _toggleMenu,
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
+            );
+          },
         ),
       ),
     );

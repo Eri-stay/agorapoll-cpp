@@ -73,6 +73,66 @@ class AuthRepository {
     }
   }
 
+  Future<void> updateUserData(Map<String, dynamic> data) async {
+    final userId = _firebaseAuth.currentUser?.uid;
+    if (userId == null) {
+      throw Exception("User is not authenticated.");
+    }
+    try {
+      await _firestore.collection('users').doc(userId).update(data);
+    } catch (e) {
+      throw Exception("Failed to update user data: $e");
+    }
+  }
+
+  Future<void> updateDisplayName(String newName) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) {
+      throw Exception("User is not authenticated.");
+    }
+    try {
+      await user.updateDisplayName(newName);
+      await _firestore.collection('users').doc(user.uid).update({
+        'displayName': newName,
+      });
+      await user.reload();
+    } on FirebaseAuthException catch (e) {
+      throw Exception('Failed to update display name: ${e.message}');
+    } catch (e) {
+      throw Exception('An unknown error occurred.');
+    }
+  }
+
+  Future<void> updateUserPassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null || user.email == null) {
+      throw Exception("User is not authenticated or email is missing.");
+    }
+
+    try {
+      AuthCredential credential = EmailAuthProvider.credential(
+        email: user.email!,
+        password: currentPassword,
+      );
+      await user.reauthenticateWithCredential(credential);
+
+      await user.updatePassword(newPassword);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'wrong-password') {
+        throw Exception('Incorrect current password.');
+      } else if (e.code == 'weak-password') {
+        throw Exception('The new password is too weak.');
+      } else {
+        throw Exception('An error occurred: ${e.message}');
+      }
+    } catch (e) {
+      throw Exception('An unknown error occurred.');
+    }
+  }
+
   Future<void> signOut() async {
     await _firebaseAuth.signOut();
   }

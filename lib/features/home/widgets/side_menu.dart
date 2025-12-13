@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class SideMenu extends StatelessWidget {
   final VoidCallback onHelpTap;
@@ -7,6 +8,7 @@ class SideMenu extends StatelessWidget {
   final VoidCallback onLogoutTap;
   final String? displayName;
   final String? email;
+  final Color avatarColor;
 
   const SideMenu({
     super.key,
@@ -15,6 +17,7 @@ class SideMenu extends StatelessWidget {
     required this.onLogoutTap,
     this.displayName,
     this.email,
+    required this.avatarColor,
   });
 
   @override
@@ -35,40 +38,33 @@ class SideMenu extends StatelessWidget {
             Center(
               child: Column(
                 children: [
-                  SizedBox(
-                    width: 87, // Wreath width
-                    height: 76, // Wreath height
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        // Gold Circle
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: const BoxDecoration(
-                            color: AppColors.accentGold,
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            initial,
-                            style: const TextStyle(
-                              fontFamily: 'Cinzel',
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                              color: Colors.white,
-                            ),
+                  Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Container(
+                        width: 64,
+                        height: 64,
+                        decoration: BoxDecoration(
+                          color: avatarColor,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            fontFamily: 'Cinzel',
+                            fontWeight: FontWeight.bold,
+                            fontSize: 20,
+                            color: Colors.white,
                           ),
                         ),
-                        // Wreath Overlay
-                        Positioned.fill(
-                          child: Image.asset(
-                            'assets/images/hell-wreath.png',
-                            fit: BoxFit.contain,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                      SvgPicture.asset(
+                        'assets/images/wreath.svg',
+                        width: 87, // Ширина всього віджету
+                        height: 76, // Висота всього віджету
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   // Name

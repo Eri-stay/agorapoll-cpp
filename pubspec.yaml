@@ -36,6 +36,8 @@ dependencies:
 
   pinput: ^4.0.0
   uuid: ^4.0.0
+  flutter_colorpicker: ^1.1.0 
+  flutter_svg: ^2.0.10+1
 
   #cupertino_icons: ^1.0.8
 

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'login_screen.dart'; // We will create this next
+import 'login_screen.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:firebase_core/firebase_core.dart';
+import '../../../firebase_options.dart';
 
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({Key? key}) : super(key: key);
@@ -11,14 +13,42 @@ class WelcomeScreen extends StatefulWidget {
 }
 
 class _WelcomeScreenState extends State<WelcomeScreen> {
+  String? _errorMessage;
+
   @override
   void initState() {
     super.initState();
-    Timer(const Duration(seconds: 2), () {
-      Navigator.of(
-        context,
-      ).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
-    });
+    _initializeAndNavigate();
+  }
+
+  Future<void> _initializeAndNavigate() async {
+    try {
+      // Створюємо два ф'ючери: один для ініціалізації Firebase,
+      // інший для мінімальної затримки у 2 секунди.
+      final firebaseInitialization = Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      final splashDelay = Future.delayed(const Duration(seconds: 2));
+
+      // Чекаємо на завершення обох.
+      // Навігація відбудеться тільки після того, як Firebase буде готовий
+      // І пройде щонайменше 2 секунди.
+      await Future.wait([firebaseInitialization, splashDelay]);
+
+      // Перевіряємо, чи віджет все ще в дереві, перш ніж робити навігацію
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => const LoginScreen()),
+        );
+      }
+    } catch (e) {
+      // Якщо сталася помилка, оновлюємо стан, щоб показати повідомлення
+      setState(() {
+        _errorMessage =
+            "Failed to connect to services. Please check your internet connection and try again.";
+        print("Firebase initialization error: $e");
+      });
+    }
   }
 
   @override
@@ -55,14 +85,28 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            const Text(
-              'Ask. Vote. Decide.',
-              style: TextStyle(
-                fontFamily: 'Inter',
-                fontSize: 16,
-                color: AppColors.textSecondary,
+            if (_errorMessage == null)
+              const Text(
+                'Ask. Vote. Decide.',
+                style: TextStyle(
+                  fontFamily: 'Inter',
+                  fontSize: 16,
+                  color: AppColors.textSecondary,
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontFamily: 'Inter',
+                    fontSize: 14,
+                    color: AppColors.error,
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
